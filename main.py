@@ -5,77 +5,64 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ASSETS = {
-    "solana": {
-        "symbol": "SOL_USDT",
-        "amount": 50,
-        "last_buy": None
-    },
-    "arbitrum": {
-        "symbol": "ARB_USDT",
-        "amount": 50,
-        "last_buy": None
-    }
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
+
+headers = {
+    "PIONEX-KEY": API_KEY,
+    "PIONEX-SECRET": API_SECRET
 }
 
+BASE_URL = "https://api.pionex.com"
 price_history = {}
+ASSETS = {
+    "SOL": {"last_buy": False},
+    "ARB": {"last_buy": False}
+}
 
-def get_price(coin_id):
-    url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
-    try:
-        res = requests.get(url)
-        return res.json()[coin_id]["usd"]
-    except Exception as e:
-        print(f"[{coin_id.upper()}] Feil ved prisinnhenting: {e}")
-        return None
-
-def place_order(symbol, side, amount):
-    print(f"{side.upper()} {symbol} for {amount} USDT")
+def get_price(symbol):
+    url = f"{BASE_URL}/api/v1/market/ticker?symbol={symbol}_USDT"
+    res = requests.get(url, headers=headers)
+    return float(res.json()["data"]["price"])
 
 def main():
-    print("Bot kjører... overvåker SOL og ARB")
+    coins = ["SOL", "ARB"]
     while True:
-        for coin in ASSETS:
-            symbol = ASSETS[coin]["symbol"]
-            amount = ASSETS[coin]["amount"]
+        for coin in coins:
+            symbol = f"{coin}_USDT"
             current_price = get_price(coin)
+            print(f"Sjekker {coin.upper()}...")
 
-            if current_price is None:
-                continue
-
-            # Prislogg for % beregning
+            # Pris-historikk lagring
             if coin not in price_history:
                 price_history[coin] = [current_price]
-                print(f"{coin.upper()} | Venter på mer historikk...")
-                continue
             else:
                 price_history[coin].append(current_price)
-                if len(price_history[coin]) > 10:
+                if len(price_history[coin]) > 5:
                     price_history[coin].pop(0)
 
-            avg_price = sum(price_history[coin][:-1]) / len(price_history[coin][:-1])
+            # Vent hvis for lite historikk
+            if len(price_history[coin]) < 2:
+                print(f"{coin.upper()} | Venter på mer historikk...")
+                continue
+
+            avg_price = sum(price_history[coin][:-1]) / (len(price_history[coin]) - 1)
             change = (current_price - avg_price) / avg_price * 100
+
             print(f"{coin.upper()} | Nå: {current_price:.3f} | Endring: {change:.2f}%")
 
             last_buy = ASSETS[coin]["last_buy"]
 
             if change <= -2 and not last_buy:
-                print(f"KJØPESIGNAL for {coin.upper()}! Pris falt {change:.2f}% – kjøper for {amount} USDT.")
-                place_order(symbol, "buy", amount)
-                ASSETS[coin]["last_buy"] = current_price
+                print(f"KJØPESIGNAL! {coin.upper()} ({current_price:.3f})")
+                ASSETS[coin]["last_buy"] = True
 
-            elif last_buy:
-                gain = (current_price - last_buy) / last_buy * 100
-                if gain >= 5:
-                    print(f"GEVINST! {coin.upper()} opp {gain:.2f}% – selger.")
-                    place_order(symbol, "sell", amount)
-                    ASSETS[coin]["last_buy"] = None
-                elif gain <= -3:
-                    print(f"STOP-LOSS! {coin.upper()} ned {gain:.2f}% – selger.")
-                    place_order(symbol, "sell", amount)
-                    ASSETS[coin]["last_buy"] = None
+            if change >= 2 and last_buy:
+                print(f"SELGSIGNAL! {coin.upper()} ({current_price:.3f})")
+                ASSETS[coin]["last_buy"] = False
 
-        time.sleep(60)
+        time.sleep(30)
 
 if __name__ == "__main__":
+    print("Bot kjører – overvåker SOL og ARB...")
     main()
