@@ -21,21 +21,24 @@ ASSETS = {
 }
 
 def get_price(symbol):
-    url = f"{BASE_URL}/api/v1/market/ticker?symbol={symbol}_USDT"
-    res = requests.get(url, headers=headers)
-    print(f"API response for {symbol}:", res.text)  # <-- denne gir deg hele JSON
+    url = f"https://api.pionex.com/api/v1/market/ticker?symbol={symbol}"
     try:
+        res = requests.get(url)
         data = res.json()
-        print("Parsed JSON:", data)  # <-- se strukturen
-        return float(data["price"])  # denne linjen kan feile
+        print(f"API response for {symbol}:", data)
+
+        if "price" in data:
+            return float(data["price"])
+        else:
+            raise ValueError(f"Mangler 'price' i responsen for {symbol}: {data}")
     except Exception as e:
-        print(f"Feil ved henting av pris for {symbol}:", e)
+        print(f"Feil ved henting av pris for {symbol}: {e}")
         raise e
 def main():
     coins = ["SOL", "ARB"]
     while True:
         for coin in coins:
-            symbol = f"{coin}_USDT"
+            symbol = f"{coin}_usdt"
             current_price = get_price(coin)
             print(f"Sjekker {coin.upper()}...")
 
