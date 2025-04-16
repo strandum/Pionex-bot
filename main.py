@@ -24,7 +24,7 @@ def get_price(symbol):
     url = f"{BASE_URL}/api/v1/market/ticker?symbol={symbol}_USDT"
     res = requests.get(url, headers=headers)
 
-    print("API response text:", res.text)  # <-- Viktig!
+    print("API response text:", res.text)  # <- Denne linjen MÅ være der!
 
     try:
         return float(res.json()["data"]["price"])
