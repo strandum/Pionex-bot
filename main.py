@@ -23,12 +23,13 @@ ASSETS = {
 def get_price(symbol):
     url = f"{BASE_URL}/api/v1/market/ticker?symbol={symbol}_USDT"
     res = requests.get(url, headers=headers)
-    
-    print("API response text:", res.text)  # <- Dette MÅ være med!
-
     try:
-        return float(res.json()["data"]["price"])
+        price = float(res.json()["price"])
+        return price
     except Exception as e:
+        print("API response text:", res.text)
+        print(f"Feil ved henting av pris for {symbol}: {e}")
+        raise e
         print(f"Feil ved henting av pris for {symbol}: {e}")
         raise e
 def main():
