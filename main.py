@@ -54,9 +54,11 @@ def main():
                 if len(price_history[coin]) > 10:
                     price_history[coin].pop(0)
 
-            avg_price = sum(price_history[coin][:-1]) / max(1, len(price_history[coin][:-1]))
-            change = (current_price - avg_price) / avg_price * 100
+            if len(price_history[coin]) < 2:
+    print(f"{coin.upper()} | Venter på mer historikk...")
+    continue
 
+avg_price = sum(price_history[coin][:-1]) / len(price_history[coin][:-1])
             print(f"{coin.upper()} | Nå: {current_price:.3f} | Endring: {change:.2f}%")
 
             last_buy = ASSETS[coin]["last_buy"]
