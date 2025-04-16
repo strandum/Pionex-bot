@@ -1,77 +1,64 @@
-import os
 import time
 import requests
-from dotenv import load_dotenv
-
-load_dotenv()
-
-API_KEY = os.getenv("API_KEY")
-API_SECRET = os.getenv("API_SECRET")
-
-headers = {
-    "PIONEX-KEY": API_KEY,
-    "PIONEX-SECRET": API_SECRET
-}
-
-BASE_URL = "https://api.binance.com"  # bruker Binance til prisdata
 
 price_history = {}
 ASSETS = {
-    "SOL": {"last_buy": False},
-    "ARB": {"last_buy": False}
+    "solana": {"last_buy": False, "name": "SOL"},
+    "arbitrum": {"last_buy": False, "name": "ARB"}
 }
 
-def get_price(symbol):
-    url = f"{BASE_URL}/api/v3/ticker/price?symbol={symbol}"
+def get_price(coin_id):
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
     try:
         res = requests.get(url)
         data = res.json()
-        print(f"API response for {symbol}:", data)
+        print(f"API response for {coin_id}:", data)
 
-        if "price" in data:
-            return float(data["price"])
+        if coin_id in data and "usd" in data[coin_id]:
+            return float(data[coin_id]["usd"])
         else:
-            raise ValueError(f"Mangler 'price' i responsen for {symbol}: {data}")
+            raise ValueError(f"Mangler pris i responsen for {coin_id}: {data}")
     except Exception as e:
-        print(f"Feil ved henting av pris for {symbol}: {e}")
+        print(f"Feil ved henting av pris for {coin_id}: {e}")
         raise e
 
 def main():
-    coins = ["SOL", "ARB"]
+    print("Bot kjører – overvåker SOL og ARB...")
     while True:
-        for coin in coins:
-            symbol = f"{coin}USDT"  # Binance bruker ikke understrek
-            current_price = get_price(symbol)
-            print(f"Sjekker {coin.upper()}...")
+        for coin_id, coin_info in ASSETS.items():
+            current_price = get_price(coin_id)
+            name = coin_info["name"]
+            print(f"Sjekker {name}...")
 
-            if coin not in price_history:
-                price_history[coin] = [current_price]
+            # Pris-historikk lagring
+            if coin_id not in price_history:
+                price_history[coin_id] = [current_price]
             else:
-                price_history[coin].append(current_price)
-                if len(price_history[coin]) > 5:
-                    price_history[coin].pop(0)
+                price_history[coin_id].append(current_price)
+                if len(price_history[coin_id]) > 5:
+                    price_history[coin_id].pop(0)
 
-            if len(price_history[coin]) < 2:
-                print(f"{coin.upper()} | Venter på mer historikk...")
+            # Vent hvis for lite historikk
+            if len(price_history[coin_id]) < 2:
+                print(f"{name} | Venter på mer historikk...")
                 continue
 
-            avg_price = sum(price_history[coin][:-1]) / (len(price_history[coin]) - 1)
+            avg_price = sum(price_history[coin_id][:-1]) / (len(price_history[coin_id]) - 1)
             change = (current_price - avg_price) / avg_price * 100
 
-            print(f"{coin.upper()} | Nå: {current_price:.3f} | Endring: {change:.2f}%")
+            print(f"{name} | Nå: {current_price:.3f} | Endring: {change:.2f}%")
 
-            last_buy = ASSETS[coin]["last_buy"]
+            last_buy = ASSETS[coin_id]["last_buy"]
 
             if change <= -2 and not last_buy:
-                print(f"KJØPESIGNAL! {coin.upper()} ({current_price:.3f})")
-                ASSETS[coin]["last_buy"] = True
+                print(f"KJØPESIGNAL! {name} ({current_price:.3f})")
+                ASSETS[coin_id]["last_buy"] = True
 
             if change >= 2 and last_buy:
-                print(f"SELGSIGNAL! {coin.upper()} ({current_price:.3f})")
-                ASSETS[coin]["last_buy"] = False
+                print(f"SELGSIGNAL! {name} ({current_price:.3f})")
+                ASSETS[coin_id]["last_buy"] = False
 
         time.sleep(30)
 
 if __name__ == "__main__":
-    print("Bot kjører – overvåker SOL og ARB...")
     main()
