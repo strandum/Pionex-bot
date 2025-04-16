@@ -38,7 +38,7 @@ def main():
     coins = ["SOL", "ARB"]
     while True:
         for coin in coins:
-            symbol = f"{coin}_USDT"
+            symbol = f"{coin.lower()}_usdt"
             current_price = get_price(coin)
             print(f"Sjekker {coin.upper()}...")
 
