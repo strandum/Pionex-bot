@@ -39,7 +39,7 @@ def main():
     while True:
         for coin in coins:
             symbol = f"{coin.lower()}_usdt"
-            current_price = get_price(coin)
+            current_price = get_price(symbol))
             print(f"Sjekker {coin.upper()}...")
 
             # Pris-historikk lagring
