@@ -21,9 +21,9 @@ ASSETS = {
 }
 
 def get_price(symbol):
-    url = f"https://api.pionex.com/api/v1/market/ticker?symbol={symbol}"
+    url = f"{BASE_URL}/api/v1/market/ticker/price?symbol={symbol}"
     try:
-        res = requests.get(url)
+        res = requests.get(url, headers=headers)
         data = res.json()
         print(f"API response for {symbol}:", data)
 
@@ -39,9 +39,9 @@ def main():
     coins = ["SOL", "ARB"]
     while True:
         for coin in coins:
-            symbol = f"{coin.lower()}_usdt"
+            symbol = f"{coin}_USDT"
             current_price = get_price(symbol)
-            print(f"Sjekker {coin.upper()}...")
+            print(f"Sjekker {coin}...")
 
             # Pris-historikk lagring
             if coin not in price_history:
@@ -53,22 +53,22 @@ def main():
 
             # Vent hvis for lite historikk
             if len(price_history[coin]) < 2:
-                print(f"{coin.upper()} | Venter på mer historikk...")
+                print(f"{coin} | Venter på mer historikk...")
                 continue
 
             avg_price = sum(price_history[coin][:-1]) / (len(price_history[coin]) - 1)
             change = (current_price - avg_price) / avg_price * 100
 
-            print(f"{coin.upper()} | Nå: {current_price:.3f} | Endring: {change:.2f}%")
+            print(f"{coin} | Nå: {current_price:.3f} | Endring: {change:.2f}%")
 
             last_buy = ASSETS[coin]["last_buy"]
 
             if change <= -2 and not last_buy:
-                print(f"KJØPESIGNAL! {coin.upper()} ({current_price:.3f})")
+                print(f"KJØPESIGNAL! {coin} ({current_price:.3f})")
                 ASSETS[coin]["last_buy"] = True
 
             if change >= 2 and last_buy:
-                print(f"SELGSIGNAL! {coin.upper()} ({current_price:.3f})")
+                print(f"SELGSIGNAL! {coin} ({current_price:.3f})")
                 ASSETS[coin]["last_buy"] = False
 
         time.sleep(30)
