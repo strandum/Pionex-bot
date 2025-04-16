@@ -34,12 +34,13 @@ def get_price(symbol):
     except Exception as e:
         print(f"Feil ved henting av pris for {symbol}: {e}")
         raise e
+
 def main():
     coins = ["SOL", "ARB"]
     while True:
         for coin in coins:
             symbol = f"{coin.lower()}_usdt"
-            current_price = get_price(symbol))
+            current_price = get_price(symbol)
             print(f"Sjekker {coin.upper()}...")
 
             # Pris-historikk lagring
