@@ -21,14 +21,14 @@ ASSETS = {
 }
 
 def get_price(symbol):
-    url = f"{BASE_URL}/api/v1/market/ticker/price?symbol={symbol}"
+    url = f"{BASE_URL}/api/v1/market/ticker?symbol={symbol}"
     try:
         res = requests.get(url, headers=headers)
         data = res.json()
         print(f"API response for {symbol}:", data)
 
-        if "price" in data:
-            return float(data["price"])
+        if "data" in data and "price" in data["data"]:
+            return float(data["data"]["price"])
         else:
             raise ValueError(f"Mangler 'price' i responsen for {symbol}: {data}")
     except Exception as e:
