@@ -55,8 +55,8 @@ def main():
                     price_history[coin].pop(0)
 
             if len(price_history[coin]) < 2:
-    print(f"{coin.upper()} | Venter på mer historikk...")
-    continue
+            print(f"{coin.upper()} | Venter på mer historikk...")
+            continue
 
 avg_price = sum(price_history[coin][:-1]) / len(price_history[coin][:-1])
             print(f"{coin.upper()} | Nå: {current_price:.3f} | Endring: {change:.2f}%")
