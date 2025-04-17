@@ -17,7 +17,7 @@ ASSETS = {
 }
 
 def get_price(coin_id):
-    url = f"https://api.coincap.io/v2/assets/{coin_id}"
+    url = f"https://pro-api.coincap.io/v1/assets/{coin_id}"
     try:
         res = requests.get(url, headers=headers)
         data = res.json()
@@ -47,7 +47,6 @@ def main():
                 if len(price_history[coin_id]) > 5:
                     price_history[coin_id].pop(0)
 
-            # Vent hvis for lite historikk
             if len(price_history[coin_id]) < 2:
                 print(f"{name} | Venter på mer historikk...")
                 continue
