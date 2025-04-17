@@ -8,14 +8,14 @@ ASSETS = {
 }
 
 def get_price(coin_id):
-    url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
+    url = f"https://api.coincap.io/v2/assets/{coin_id}"
     try:
         res = requests.get(url)
         data = res.json()
         print(f"API response for {coin_id}:", data)
 
-        if coin_id in data and "usd" in data[coin_id]:
-            return float(data[coin_id]["usd"])
+        if "data" in data and "priceUsd" in data["data"]:
+            return float(data["data"]["priceUsd"])
         else:
             raise ValueError(f"Mangler pris i responsen for {coin_id}: {data}")
     except Exception as e:
