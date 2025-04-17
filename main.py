@@ -1,5 +1,14 @@
 import time
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+API_KEY = os.getenv("COINCAP_API_KEY")
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}"
+}
 
 price_history = {}
 ASSETS = {
@@ -10,7 +19,7 @@ ASSETS = {
 def get_price(coin_id):
     url = f"https://api.coincap.io/v2/assets/{coin_id}"
     try:
-        res = requests.get(url)
+        res = requests.get(url, headers=headers)
         data = res.json()
         print(f"API response for {coin_id}:", data)
 
